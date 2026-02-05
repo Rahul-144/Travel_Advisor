@@ -1,0 +1,13 @@
+langgraph
+langchain
+langchain-core
+langchain-community
+langchain-openai
+langchain-huggingface
+faiss-cpu
+python-dotenv
+amadeus
+requests
+pydantic
+jq
+sentence-transformers

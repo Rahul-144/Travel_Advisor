@@ -1,0 +1,6 @@
+activity_planner/.env
+Data_preparation/enwikivoyage-sectioned
+Data_preparation/enwikivoyage-latest-pages-articles.xml.bz2
+faiss_index
+env
+activity_planner/__pycache__
