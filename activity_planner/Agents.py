@@ -2,20 +2,45 @@ from langgraph.graph import END, StateGraph
 # from langgraph.prompts import ChatPromptTemplate
 import operator
 from typing import List, Dict, TypedDict,Annotated
-from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage,ToolMessage
+from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage,ToolMessage, AnyMessage
+from uuid import uuid4
+# from langgraph.graph.message import add_messages
 from Model import llm_node
 from Faiss_indexing import faiss_index
 from tools import get_location_by_ip
+from langgraph.checkpoint.memory import MemorySaver
+import json
 
 TOOLS = {
     "get_location_by_ip": get_location_by_ip
 }
+# memory = SqliteSaver.from_conn_string(":memory:")
+def reduce_messages(left: list[AnyMessage], right: list[AnyMessage]) -> list[AnyMessage]:
+    # assign ids to messages that don't have them
+    for message in right:
+        if not message.id:
+            message.id = str(uuid4())
+    # merge the new messages with the existing messages
+    merged = left.copy()
+    for message in right:
+        for i, existing in enumerate(merged):
+            # replace any existing messages with the same id
+            if existing.id == message.id:
+                merged[i] = message
+                break
+        else:
+            # append any new messages to the end
+            merged.append(message)
+    return merged
 class AgentState(TypedDict):
-    messages:Annotated[List[BaseMessage], operator.add]
+    messages:Annotated[List[BaseMessage], reduce_messages]
+    # messages: Annotated[List[BaseMessage], add_messages]
 class Agent():
     def __init__(self, system=""):
         self.system= system
+        self.flags = True
         self.tools = TOOLS
+        self.vectorstore = faiss_index()
         graph = StateGraph(AgentState)
         graph.add_node("llm",llm_node)
         graph.add_node("rag",self.Rag_node)
@@ -29,20 +54,23 @@ class Agent():
         )
         graph.add_edge("action", "llm")
         graph.set_entry_point("rag")
-        self.graph = graph.compile()
+        self.memory = MemorySaver()
+        
+        # 3. Compile with the persistent saver
+        self.graph = graph.compile(checkpointer=self.memory)
   
     def Rag_node(self,state: AgentState):
         query = state["messages"][-1].content
-        vectorstore = faiss_index()
-        retriever = vectorstore.as_retriever()
+       
+        retriever = self.vectorstore.as_retriever(search_kwargs={"k": 4})
         docs = retriever.invoke(query)
 
         context = "\n".join(d.page_content for d in docs)
 
         messages = []
-        if self.system:
+        if self.system and self.flags:
             messages.append(SystemMessage(content=self.system))
-
+            self.flags = False
         messages.append(SystemMessage(content=f"Context:\n{context}"))
         messages.append(HumanMessage(content=query))
         return {"messages": messages}
@@ -60,41 +88,73 @@ class Agent():
                 result = "bad tool name, retry"  # instruct LLM to retry if bad
             else:
                 result = self.tools[t['name']].invoke(t['args'])
-            results.append(ToolMessage(tool_call_id=t['id'], name=t['name'], content=str(result)))
+            results.append(ToolMessage(tool_call_id=t['id'], name=t['name'], content=json.dumps(result)))
         print("Back to the model!")
         return {'messages': results}
-    def run(self, query: str):
+    def run(self, query: str, thread: Dict = None):
+        initial_messages = []
+        # if self.system:
+        #     initial_messages.append(SystemMessage(content=self.system))
+        initial_messages.append(HumanMessage(content=query))
+
         return self.graph.invoke(
-            {"messages": [HumanMessage(content=query)]}
+            {"messages": initial_messages},
+            config=thread
         )
-prompt = """You are a smart travel research assistant don't answer any unrelated question.
-Answer only using the given context. Use tools for customizing the response.
-You MUST respond in valid JSON ONLY.
-The JSON must match this schema when it is asked to plan a trip:
+prompt =''' You are a smart and friendly travel research assistant.
 
-{
-  "destination": string,
-  "duration": number,
-  "budget": number,
-  "activities": string,
-  "accommodations": string,
-  "transportation": string,
-  "safety": string,
-  "health": string,
-  "culture": string,
-  "itinerary": string
-}
+You MUST follow these rules strictly:
 
-Rules:
-- Use ONLY the provided context
-- If information is missing, use empty arrays or "unknown"
-- Do NOT add explanations or markdown"""
+GENERAL RULES:
+- Answer ONLY using the provided context.
+- Try to get as much information as possible from the context to answer the user's query.
+- whenever necessry make use of the provided tools to get information, but do NOT use any external knowledge or assumptions.
+- Do NOT use any external or common knowledge.
+- Do NOT infer or assume missing information.
+- If information is not present in the context, use "unknown" or empty arrays.
+- You MUST always respond in valid JSON.
+- Do NOT add explanations, markdown, or extra text.
+
+INTENT HANDLING:
+1. If the user greets (e.g., "hi", "hello", "hey") or asks something unrelated to travel planning:
+   Respond with this JSON schema ONLY:
+
+   {
+     "type": "non_trip",
+     "message": string
+   }
+
+2. If the user asks to plan a trip or requests travel-related information:
+   Respond using the following schema ONLY:
+
+   {
+     "type": "trip_plan",
+     "destination": string,
+     "duration_days": number | "unknown",
+     "budget_estimate": number | "unknown",
+     "activities": string[],
+     "accommodations": string[],
+     "transportation": string[],
+     "safety": string[],
+     "health": string[],
+     "culture": string[],
+     "itinerary": string[]
+
+CONTEXT RULES:
+
+- Every field must be grounded in the provided context.
+- If a field cannot be answered from the context, return an empty array or "unknown".
+- If the context is insufficient to answer the request, say so using empty fields.
+
+Violating any rule is considered an error.
+'''
+
 abot = Agent(system=prompt)
 while True:
+
+    thread = {"configurable": {"thread_id": "1"}}
     query = input("Enter your query: ")
     if query.lower() == "exit":
         break
-    result = abot.run(query)
+    result = abot.run(query,thread=thread)
     print(result["messages"][-1].content)
-    if query.lower() == "exit":
-        break
