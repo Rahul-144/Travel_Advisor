@@ -9,6 +9,13 @@ from Model import llm_node
 from Faiss_indexing import faiss_index
 from tools import get_location_by_ip
 from langgraph.checkpoint.memory import MemorySaver
+from langchain.retrievers import ContextualCompressionRetriever
+from langchain.retrievers.document_compressors import CrossEncoderReranker
+from langchain_community.cross_encoders import HuggingFaceCrossEncoder
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+model = HuggingFaceCrossEncoder(model_name="BAAI/bge-reranker-base")
+compressor = CrossEncoderReranker(model=model, top_n=3)
+
 import json
 
 TOOLS = {
@@ -63,7 +70,11 @@ class Agent():
         query = state["messages"][-1].content
        
         retriever = self.vectorstore.as_retriever(search_kwargs={"k": 4})
-        docs = retriever.invoke(query)
+        compression_retriever = ContextualCompressionRetriever(
+        base_compressor=compressor, base_retriever=retriever
+    )
+
+        docs = docs = compression_retriever.invoke(query)
 
         context = "\n".join(d.page_content for d in docs)
 
@@ -108,6 +119,7 @@ You MUST follow these rules strictly:
 GENERAL RULES:
 - Answer ONLY using the provided context.
 - Try to get as much information as possible from the context to answer the user's query.
+- USE THE AVAILABLE TOOLS to get information when necessary.
 - whenever necessry make use of the provided tools to get information, but do NOT use any external knowledge or assumptions.
 - Do NOT use any external or common knowledge.
 - Do NOT infer or assume missing information.
