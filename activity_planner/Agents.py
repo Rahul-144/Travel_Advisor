@@ -7,11 +7,12 @@ from uuid import uuid4
 # from langgraph.graph.message import add_messages
 from Model import llm_node
 from Faiss_indexing import faiss_index
-from tools import get_location_by_ip
+from tools import get_location_by_ip, search_flights
 from langgraph.checkpoint.memory import MemorySaver
 from langchain.retrievers import ContextualCompressionRetriever
 from langchain.retrievers.document_compressors import CrossEncoderReranker
 from langchain_community.cross_encoders import HuggingFaceCrossEncoder
+import os
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 model = HuggingFaceCrossEncoder(model_name="BAAI/bge-reranker-base")
 compressor = CrossEncoderReranker(model=model, top_n=3)
@@ -19,7 +20,8 @@ compressor = CrossEncoderReranker(model=model, top_n=3)
 import json
 
 TOOLS = {
-    "get_location_by_ip": get_location_by_ip
+    "get_location_by_ip": get_location_by_ip,
+    "search_flights": search_flights
 }
 # memory = SqliteSaver.from_conn_string(":memory:")
 def reduce_messages(left: list[AnyMessage], right: list[AnyMessage]) -> list[AnyMessage]:

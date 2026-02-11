@@ -9,8 +9,8 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.messages import BaseMessage
 
 from tools import *
-if "GROQ_API_KEY" not in os.environ:
-    print("Warning: GROQ_API_KEY not found in environment variables.")
+if "OPEN_API_KEY" not in os.environ:
+    print("Warning: OPEN_API_KEY not found in environment variables.")
 
 class TravelPlan(BaseModel):
     destination: str
@@ -24,14 +24,14 @@ class TravelPlan(BaseModel):
     culture: List[str]
     itinerary: List[str]
     
-tools = [get_location_by_ip]
+tools = [get_location_by_ip, search_flights]
 # Using ChatOpenAI with Groq endpoint
 llm = ChatOpenAI(
     openai_api_base="https://api.groq.com/openai/v1",
-    openai_api_key=os.environ.get("GROQ_API_KEY"),
+    openai_api_key=os.environ.get("OPEN_API_KEY"),
     model_name="qwen/qwen3-32b" # Valid Groq model'
    
-).bind_tools(tool for tool in tools)
+).bind_tools(tools)
 
 # Test run function
 def llm_node(state: dict):

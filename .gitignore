@@ -4,3 +4,5 @@ Data_preparation/enwikivoyage-latest-pages-articles.xml.bz2
 faiss_index
 env
 activity_planner/__pycache__
+serpapi-mcp
+activity_planner/MCP_Client.py
