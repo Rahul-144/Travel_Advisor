@@ -11,3 +11,5 @@ requests
 pydantic
 jq
 sentence-transformers
+google-search-results
+mcp
