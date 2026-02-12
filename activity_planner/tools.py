@@ -2,12 +2,15 @@ import requests
 import json
 from typing import Dict, Any
 from langchain_core.tools import tool
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from amadeus import Client, ResponseError
 from dotenv import load_dotenv
 from serpapi import GoogleSearch
 from datetime import datetime
+import asyncio
+from MCP_Client import call_mcp_tool
 import os
+from pprint import pprint
 @tool
 def get_location_by_ip() -> Dict[str, Any]:
     """Get geographical location based on IP address."""
@@ -66,3 +69,68 @@ def search_flights(start: str, end: str, date: str) -> Dict[str, Any]:
 
 # flight=search_flights('COK','GOI' , '2026-03-03')
 # print(flight)
+
+
+
+
+@tool
+def search_hotels(location: str, check_in: str, check_out: str) -> str:
+    """Search hotels using Google Hotels engine. Returns top 5 hotels with essential information."""
+
+    async def run():
+        params = {
+            "engine": "google_hotels",
+            "q": location,
+            "check_in_date": check_in,
+            "check_out_date": check_out,
+            "currency": "INR"
+        }
+
+        return await call_mcp_tool("search", {
+            "params": params,
+            "mode": "compact"
+        })
+    
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        raw_results = loop.run_until_complete(run())
+    finally:
+        loop.close()
+    
+    # MCP returns a list of text strings containing JSON
+    # Parse the first item which contains the actual JSON data
+    if raw_results and isinstance(raw_results, list):
+        data = json.loads(raw_results[0])
+        hotels_list = data.get("properties", [])
+    else:
+        return json.dumps({"hotels": [], "error": "No results found"})
+    
+    # Extract and clean hotel data
+    cleaned_hotels = []
+    
+    for hotel in hotels_list[:5]:  # Limit to top 5 hotels
+        cleaned_hotel = {
+            "name": hotel.get("name", "N/A"),
+            "type": hotel.get("type", "hotel"),
+            "rating": hotel.get("overall_rating", "N/A"),
+            "reviews_count": hotel.get("reviews", 0),
+            "price_per_night": hotel.get("rate_per_night", {}).get("lowest", "N/A"),
+            "total_price": hotel.get("total_rate", {}).get("lowest", "N/A"),
+            "link": hotel.get("link", "N/A"),
+            "amenities": hotel.get("amenities", [])[:8],  # Limit amenities
+            "description": hotel.get("description", ""),
+            "check_in_time": hotel.get("check_in_time", "N/A"),
+            "check_out_time": hotel.get("check_out_time", "N/A"),
+        }
+        
+        # Add location rating if available
+        if "location_rating" in hotel:
+            cleaned_hotel["location_rating"] = hotel["location_rating"]
+        
+        cleaned_hotels.append(cleaned_hotel)
+    
+    # Return as formatted JSON string
+    return {"hotels": cleaned_hotels}
+
+

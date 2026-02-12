@@ -7,12 +7,14 @@ from uuid import uuid4
 # from langgraph.graph.message import add_messages
 from Model import llm_node
 from Faiss_indexing import faiss_index
-from tools import get_location_by_ip, search_flights
+from tools import *
+
 from langgraph.checkpoint.memory import MemorySaver
 from langchain.retrievers import ContextualCompressionRetriever
 from langchain.retrievers.document_compressors import CrossEncoderReranker
 from langchain_community.cross_encoders import HuggingFaceCrossEncoder
 import os
+
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 model = HuggingFaceCrossEncoder(model_name="BAAI/bge-reranker-base")
 compressor = CrossEncoderReranker(model=model, top_n=3)
@@ -21,7 +23,8 @@ import json
 
 TOOLS = {
     "get_location_by_ip": get_location_by_ip,
-    "search_flights": search_flights
+    "search_flights": search_flights,
+    "search_hotels": search_hotels
 }
 # memory = SqliteSaver.from_conn_string(":memory:")
 def reduce_messages(left: list[AnyMessage], right: list[AnyMessage]) -> list[AnyMessage]:
@@ -119,13 +122,11 @@ prompt =''' You are a smart and friendly travel research assistant.
 You MUST follow these rules strictly:
 
 GENERAL RULES:
-- Answer ONLY using the provided context.
-- Try to get as much information as possible from the context to answer the user's query.
-- USE THE AVAILABLE TOOLS to get information when necessary.
-- whenever necessry make use of the provided tools to get information, but do NOT use any external knowledge or assumptions.
-- Do NOT use any external or common knowledge.
+- Answer using the provided context.
+- Try to get as much information as possible from the context.
+- **CRITICAL**: If the context is missing information (e.g., specific hotels, flight prices, current events) or if the user asks for real-time data, YOU MUST USE THE AVAILABLE TOOLS (serpapi_search, search_flights, etc.).
+- Do NOT use internal training knowledge not present in the context or tool outputs.
 - Do NOT infer or assume missing information.
-- If information is not present in the context, use "unknown" or empty arrays.
 - You MUST always respond in valid JSON.
 - Do NOT add explanations, markdown, or extra text.
 
@@ -152,13 +153,14 @@ INTENT HANDLING:
      "safety": string[],
      "health": string[],
      "culture": string[],
-     "itinerary": string[]
+     "itinerary": string[],
+     "tools_used": string[]
+   }
 
 CONTEXT RULES:
-
-- Every field must be grounded in the provided context.
-- If a field cannot be answered from the context, return an empty array or "unknown".
-- If the context is insufficient to answer the request, say so using empty fields.
+- Every field must be grounded in the provided context or tool results.
+- If a field cannot be answered from the context/tools, return an empty array or "unknown".
+- If you used a tool, list it in "tools_used".
 
 Violating any rule is considered an error.
 '''

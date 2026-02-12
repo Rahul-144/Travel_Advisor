@@ -24,7 +24,7 @@ class TravelPlan(BaseModel):
     culture: List[str]
     itinerary: List[str]
     
-tools = [get_location_by_ip, search_flights]
+tools = [get_location_by_ip, search_flights, search_hotels]
 # Using ChatOpenAI with Groq endpoint
 llm = ChatOpenAI(
     openai_api_base="https://api.groq.com/openai/v1",
