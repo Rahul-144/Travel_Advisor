@@ -3,12 +3,13 @@ import os
 from dotenv import load_dotenv
 from mcp import ClientSession
 from mcp.client.streamable_http import streamable_http_client
+from contextlib import asynccontextmanager
 
 load_dotenv()
 
 serpapi_key = os.getenv("SERP_API_KEY")
 
-
+@asynccontextmanager
 async def mcp_session():
     async with streamable_http_client(
         f"https://mcp.serpapi.com/{serpapi_key}/mcp"

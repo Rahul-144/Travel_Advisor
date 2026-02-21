@@ -82,8 +82,20 @@ SERP_API_KEY=your_serpapi_key
 
 ## 🚀 Usage
 
-### Running the Assistant
-To start the interactive CLI agent:
+### 🎨 Running with Streamlit UI (Recommended)
+For a beautiful, interactive web interface:
+```bash
+streamlit run app.py
+```
+This will open a browser window with a chat-based interface featuring:
+- 💬 Interactive chat conversation
+- 🎨 Beautiful trip plan visualizations
+- 📊 Formatted flight and hotel results
+- 🔄 Persistent conversation history
+- 🎯 Helpful tips and examples
+
+### 🖥️ Running the CLI Assistant
+To start the interactive command-line agent:
 ```bash
 python3 activity_planner/Agents.py
 ```
@@ -112,6 +124,7 @@ python3 activity_planner/Faiss_indexing.py
 
 ## 📂 Project Structure
 
+- `app.py`: **Streamlit web interface** - Beautiful UI for interacting with the agent.
 - `activity_planner/`
   - `Agents.py`: Main LangGraph logic, state definition, and agent nodes.
   - `Model.py`: LLM configuration and tool binding.

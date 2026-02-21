@@ -1,13 +1,10 @@
 
 import os
-
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-
 import json
 from langchain_core.documents import Document
 from glob import glob
 from langchain_community.document_loaders import JSONLoader
-# If wiki_00 is a JSON Lines file (one JSON object per line)
 
 
 def process_json_files(directory_path):
@@ -34,7 +31,6 @@ def process_json_files(directory_path):
     )
     }
     """
-
     for dir_path in dir_paths:
         files = glob(dir_path + '/*')
         for file in files:

@@ -5,9 +5,9 @@ from typing import List, Dict, TypedDict,Annotated
 from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage,ToolMessage, AnyMessage
 from uuid import uuid4
 # from langgraph.graph.message import add_messages
-from Model import llm_node
-from Faiss_indexing import faiss_index
-from tools import *
+from .Model import llm_node
+from .Faiss_indexing import faiss_index
+from .tools import *
 
 from langgraph.checkpoint.memory import MemorySaver
 from langchain.retrievers import ContextualCompressionRetriever
@@ -24,8 +24,9 @@ import json
 TOOLS = {
     "get_location_by_ip": get_location_by_ip,
     "search_flights": search_flights,
-    "search_hotels": search_hotels
-}
+    "search_hotels": search_hotels,
+    "get_current_date": get_current_date
+    }
 # memory = SqliteSaver.from_conn_string(":memory:")
 def reduce_messages(left: list[AnyMessage], right: list[AnyMessage]) -> list[AnyMessage]:
     # assign ids to messages that don't have them
@@ -165,12 +166,9 @@ CONTEXT RULES:
 Violating any rule is considered an error.
 '''
 
-abot = Agent(system=prompt)
-while True:
-
-    thread = {"configurable": {"thread_id": "1"}}
-    query = input("Enter your query: ")
-    if query.lower() == "exit":
-        break
-    result = abot.run(query,thread=thread)
-    print(result["messages"][-1].content)
+_agent_instance = None
+def get_agent():
+    global _agent_instance
+    if _agent_instance is None:
+        _agent_instance = Agent(system=prompt)
+    return _agent_instance

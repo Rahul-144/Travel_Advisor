@@ -3,14 +3,24 @@ import json
 from typing import Dict, Any
 from langchain_core.tools import tool
 from pydantic import BaseModel, Field
-from amadeus import Client, ResponseError
 from dotenv import load_dotenv
 from serpapi import GoogleSearch
-from datetime import datetime
+import datetime
 import asyncio
-from MCP_Client import call_mcp_tool
+from .MCP_Client import call_mcp_tool
 import os
 from pprint import pprint
+import nest_asyncio
+
+# Apply the patch once at the start of your script
+nest_asyncio.apply()
+@tool
+def get_current_date() -> str:
+    """Get the current local date and time."""
+    now = datetime.datetime.now()
+    today = datetime.date.today()
+    formatted_date = today.strftime("%Y-%m-%d")
+    return {"success": True, "date": formatted_date}
 @tool
 def get_location_by_ip() -> Dict[str, Any]:
     """Get geographical location based on IP address."""
@@ -132,5 +142,3 @@ def search_hotels(location: str, check_in: str, check_out: str) -> str:
     
     # Return as formatted JSON string
     return {"hotels": cleaned_hotels}
-
-

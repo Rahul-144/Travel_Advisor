@@ -2,7 +2,7 @@ langgraph
 langchain
 langchain-core
 langchain-community
-langchain-openai
+langchain-openaip
 langchain-huggingface
 faiss-cpu
 python-dotenv
