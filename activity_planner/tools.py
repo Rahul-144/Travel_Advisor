@@ -111,7 +111,8 @@ def search_hotels(location: str, check_in: str, check_out: str) -> str:
     # MCP returns a list of text strings containing JSON
     # Parse the first item which contains the actual JSON data
     if raw_results and isinstance(raw_results, list):
-        data = json.loads(raw_results[0])
+        print("Raw MCP Results:", raw_results)  # Debug print
+        data = json.loads(raw_results[0].text)
         hotels_list = data.get("properties", [])
     else:
         return json.dumps({"hotels": [], "error": "No results found"})

@@ -78,6 +78,32 @@ SERP_API_KEY=your_serpapi_key
 - **Models**: The first time you run the application, it will automatically download the embedding model (`all-MiniLM-L6-v2`) and the reranker model (`bge-reranker-base`). These are approximately 500MB total.
 - **FAISS Index**: If you don't have a pre-built index, the system will attempt to create one from the data in `Data_preparation/`. Ensure your raw JSON data is placed in the correct directory as defined in `Faiss_indexing.py`.
 
+### 📦 Docker Support
+A `Dockerfile` and `docker-compose.yml` have been added so you can containerize the project for easier deployment.
+
+1. **Build the image**
+   ```bash
+   docker build -t travel-advisor .
+   # or with compose:
+   docker-compose build
+   ```
+
+2. **Run the container**
+   ```bash
+   docker run --rm -p 8501:8501 \
+     -v "$PWD":/app \
+     -e PYTHONUNBUFFERED=1 \
+     travel-advisor
+   # or simply:
+   docker-compose up
+   ```
+
+3. **Environment variables**
+   Put your API keys in `activity_planner/.env` as before; you can mount that file or copy it into the image if you have build-time secrets.
+
+4. **Ports**
+   The Streamlit UI will be available on `http://localhost:8501/`.
+
 ---
 
 ## 🚀 Usage
