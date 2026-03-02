@@ -37,7 +37,11 @@ llm = ChatOpenAI(
 def llm_node(state: dict):
     messages: list[BaseMessage] = state["messages"]
     response = llm.invoke(messages)
-    return {"messages": [response]}
+    result = {"messages": [response]}
+    # pass citation along if present
+    if "citation" in state:
+        result["citation"] = state["citation"]
+    return result
 
 
-
+        

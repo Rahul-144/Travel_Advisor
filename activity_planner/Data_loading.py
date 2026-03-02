@@ -50,4 +50,23 @@ def create_chunks(documents):
     chunk_overlap=200,
     length_function=len,
     )
-    return text_splitter.split_documents(documents)
+    chunks = text_splitter.split_documents(documents)
+
+    # ensure metadata fields carry over into chunks
+    for chunk in chunks:
+        # if missing, supply defaults
+        if 'title' not in chunk.metadata:
+            for key in chunk.metadata:
+                if key.lower() == 'title':
+                    chunk.metadata['title'] = chunk.metadata[key]
+                    break
+            else:
+                chunk.metadata['title'] = 'Unknown'
+        if 'id' not in chunk.metadata:
+            for key in chunk.metadata:
+                if key.lower() == 'id':
+                    chunk.metadata['id'] = chunk.metadata[key]
+                    break
+            else:
+                chunk.metadata['id'] = 'Unknown'
+    return chunks

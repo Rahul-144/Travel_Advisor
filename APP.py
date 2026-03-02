@@ -89,6 +89,16 @@ if prompt:
         thread = {"configurable": {"thread_id": f"{threads}"}}
         result = agent.run(prompt, thread=thread)
         answer = result["messages"][-1].content
+        # capture any retrieval citation that the agent stored
+        citation = result.get("citation")
+        if citation:
+            # try to format JSON list of citations for display
+            try:
+                parsed = json.loads(citation)
+            except Exception:
+                parsed = citation
+            st.sidebar.markdown("**🔗 Retrieval citations**")
+            st.sidebar.write(parsed)
         # Show how many tool calls were made
         tool_calls = sum(
             1 for m in result["messages"]
@@ -103,6 +113,17 @@ if prompt:
     try:
         data = json.loads(answer)
         render_messages(data)
+
+        # display citation also in the chat stream if available
+        if citation:
+            with st.chat_message("assistant"):
+                st.markdown("**Sources used for retrieval:**")
+                # parsed earlier when adding sidebar
+                try:
+                    cit_list = json.loads(citation)
+                except Exception:
+                    cit_list = citation
+                st.write(cit_list)
 
         readable = (
             data.get("destination")

@@ -47,6 +47,7 @@ def reduce_messages(left: list[AnyMessage], right: list[AnyMessage]) -> list[Any
     return merged
 class AgentState(TypedDict):
     messages:Annotated[List[BaseMessage], reduce_messages]
+    citation: str
     # messages: Annotated[List[BaseMessage], add_messages]
 class Agent():
     def __init__(self, system=""):
@@ -80,9 +81,22 @@ class Agent():
         base_compressor=compressor, base_retriever=retriever
     )
 
-        docs = docs = compression_retriever.invoke(query)
+        docs = compression_retriever.invoke(query)
 
         context = "\n".join(d.page_content for d in docs)
+        
+        # Extract citations from retrieved documents
+        citations = []
+        for doc in docs:
+            metadata = doc.metadata
+            print(f"Metadata for retrieved doc: {metadata}")  # Debug print
+            citation = {
+                "source": metadata.get("source", "Unknown"),
+                "seq_num": metadata.get("seq_num", "Unknown")
+            }
+            if citation not in citations:  # avoid duplicates
+                citations.append(citation)
+        citation_str = json.dumps(citations)
 
         messages = []
         if self.system and self.flags:
@@ -90,7 +104,7 @@ class Agent():
             self.flags = False
         messages.append(SystemMessage(content=f"Context:\n{context}"))
         messages.append(HumanMessage(content=query))
-        return {"messages": messages}
+        return {"messages": messages, "citation": citation_str}
     def exists_action(self, state: AgentState):
         result = state['messages'][-1]
         return hasattr(result, "tool_calls") and len(result.tool_calls) > 0
@@ -107,7 +121,10 @@ class Agent():
                 result = self.tools[t['name']].invoke(t['args'])
             results.append(ToolMessage(tool_call_id=t['id'], name=t['name'], content=json.dumps(result)))
         print("Back to the model!")
-        return {'messages': results}
+        ret = {'messages': results}
+        if 'citation' in state:
+            ret['citation'] = state['citation']
+        return ret
     def run(self, query: str, thread: Dict = None):
         initial_messages = []
         # if self.system:
@@ -115,7 +132,7 @@ class Agent():
         initial_messages.append(HumanMessage(content=query))
 
         return self.graph.invoke(
-            {"messages": initial_messages},
+            {"messages": initial_messages, "citation": ""},
             config=thread
         )
 prompt =''' You are a smart and friendly travel research assistant.
@@ -172,3 +189,11 @@ def get_agent():
     if _agent_instance is None:
         _agent_instance = Agent(system=prompt)
     return _agent_instance
+# def main():
+#     agent = get_agent()
+#     while True:
+#         query = input("Ask about your trip: ")
+#         result = agent.run(query,{"configurable": {"thread_id": 1}})
+#         print(json.dumps(result, indent=2))
+# if __name__ == "__main__":   
+#     main()    
