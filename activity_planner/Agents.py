@@ -1,13 +1,16 @@
 from langgraph.graph import END, StateGraph
 # from langgraph.prompts import ChatPromptTemplate
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent))
 import operator
 from typing import List, Dict, TypedDict,Annotated
 from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage,ToolMessage, AnyMessage
 from uuid import uuid4
 # from langgraph.graph.message import add_messages
-from .Model import llm_node
-from .Faiss_indexing import faiss_index
-from .tools import *
+from Model import llm_node
+from Faiss_indexing import faiss_index
+from tools import *
 
 from langgraph.checkpoint.memory import MemorySaver
 from langchain.retrievers import ContextualCompressionRetriever
@@ -47,7 +50,8 @@ def reduce_messages(left: list[AnyMessage], right: list[AnyMessage]) -> list[Any
     return merged
 class AgentState(TypedDict):
     messages:Annotated[List[BaseMessage], reduce_messages]
-    citation: str
+    citation:  Dict[str, str]
+    content:  Dict[str, str]
     # messages: Annotated[List[BaseMessage], add_messages]
 class Agent():
     def __init__(self, system=""):
@@ -87,6 +91,7 @@ class Agent():
         
         # Extract citations from retrieved documents
         citations = []
+        contents = []
         for doc in docs:
             metadata = doc.metadata
             print(f"Metadata for retrieved doc: {metadata}")  # Debug print
@@ -94,9 +99,13 @@ class Agent():
                 "source": metadata.get("source", "Unknown"),
                 "seq_num": metadata.get("seq_num", "Unknown")
             }
+            content = {"context": doc.page_content}
+            if content not in contents:
+                contents.append(content)  # avoid duplicates
             if citation not in citations:  # avoid duplicates
                 citations.append(citation)
         citation_str = json.dumps(citations)
+        content_str = json.dumps(contents)
 
         messages = []
         if self.system and self.flags:
@@ -104,7 +113,7 @@ class Agent():
             self.flags = False
         messages.append(SystemMessage(content=f"Context:\n{context}"))
         messages.append(HumanMessage(content=query))
-        return {"messages": messages, "citation": citation_str}
+        return {"messages": messages, "citation": citation_str, "content": content_str}
     def exists_action(self, state: AgentState):
         result = state['messages'][-1]
         return hasattr(result, "tool_calls") and len(result.tool_calls) > 0
@@ -132,7 +141,7 @@ class Agent():
         initial_messages.append(HumanMessage(content=query))
 
         return self.graph.invoke(
-            {"messages": initial_messages, "citation": ""},
+            {"messages": initial_messages, "citation": "", "content": ""},
             config=thread
         )
 prompt =''' You are a smart and friendly travel research assistant.

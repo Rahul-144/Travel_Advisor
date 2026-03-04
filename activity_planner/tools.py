@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from serpapi import GoogleSearch
 import datetime
 import asyncio
-from .MCP_Client import call_mcp_tool
+from MCP_Client import call_mcp_tool
 import os
 from pprint import pprint
 import nest_asyncio

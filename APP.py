@@ -1,5 +1,6 @@
 import streamlit as st
 from activity_planner.Agents import get_agent
+from activity_planner.QA_Logger import get_logger
 import json
 
 st.set_page_config(page_title="Travel Assistant", page_icon="✈️")
@@ -108,6 +109,34 @@ if prompt:
             st.write(f"🛠️ Used {tool_calls} tool(s) to fetch live data")
         st.write("✅ Response ready!")
         status.update(label="Done!", state="complete", expanded=False)
+
+    # Log the Q&A with retrieved context
+    try:
+        logger = get_logger()
+        
+        # Extract retrieved context from result
+        retrieved_context = []
+        if "contents" in result:
+            contents = result.get("contents")
+            if isinstance(contents, str):
+                try:
+                    retrieved_context = json.loads(contents)
+                except (json.JSONDecodeError, ValueError):
+                    retrieved_context = [{"context": contents}]
+            elif isinstance(contents, list):
+                retrieved_context = contents
+        
+        # Log the Q&A
+        logger.log_qa(
+            question=prompt,
+            answer=answer,
+            retrieved_context=retrieved_context
+        )
+        print(f"✅ Logged Q&A to: {logger.get_log_file_path()}")
+    except Exception as e:
+        print(f"⚠️ Error logging Q&A: {e}")
+        import traceback
+        traceback.print_exc()
 
     # parse
     try:

@@ -1,7 +1,8 @@
-from .Data_loading import create_chunks, process_json_files
+from Data_loading import create_chunks, process_json_files
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
 import os
+
 
 
 def faiss_index():
@@ -9,7 +10,6 @@ def faiss_index():
     embeddings = HuggingFaceEmbeddings(
         model_name="sentence-transformers/all-MiniLM-L6-v2"
     )
-
     if os.path.exists("faiss_index"):
         print("Loading existing index")
 
@@ -18,7 +18,6 @@ def faiss_index():
             embeddings,
             allow_dangerous_deserialization=True
         )
-
     else:
         print("Creating new index")
 

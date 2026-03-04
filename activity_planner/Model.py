@@ -8,7 +8,7 @@ from typing import List
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.messages import BaseMessage
 
-from .tools import *
+from tools import *
 if "OPEN_API_KEY" not in os.environ:
     print("Warning: OPEN_API_KEY not found in environment variables.")
 
