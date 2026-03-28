@@ -52,18 +52,25 @@ class AgentState(TypedDict):
     messages:Annotated[List[BaseMessage], reduce_messages]
     citation:  Dict[str, str]
     content:  Dict[str, str]
-    # messages: Annotated[List[BaseMessage], add_messages]
+    question_type: str
+    system_prompt: str
 class Agent():
     def __init__(self, system=""):
-        self.system= system
-        self.flags = True
+        self.system = system
         self.tools = TOOLS
         self.vectorstore = faiss_index()
         graph = StateGraph(AgentState)
+        graph.add_node("classify", self.classify_node)
         graph.add_node("llm",llm_node)
         graph.add_node("rag",self.Rag_node)
         graph.add_node("action",self.take_action)
         
+        # Classifier routes to either RAG (non-trip) or directly to LLM (trip)
+        graph.add_conditional_edges(
+            "classify",
+            self.route_by_question_type,
+            {"non_trip": "llm", "trip": "rag"}
+        )
         graph.add_edge("rag","llm")
         graph.add_conditional_edges(
             "llm",
@@ -71,11 +78,49 @@ class Agent():
             {True: "action", False: END}
         )
         graph.add_edge("action", "llm")
-        graph.set_entry_point("rag")
+        graph.set_entry_point("classify")
         self.memory = MemorySaver()
         
-        # 3. Compile with the persistent saver
+        # Compile with the persistent saver
         self.graph = graph.compile(checkpointer=self.memory)
+  
+    def classify_node(self, state: AgentState):
+        """Classify whether the question is trip-related or not."""
+        query = state["messages"][-1].content
+
+        # System prompt for classification
+        classifier_prompt = """You are a travel question classifier. Classify the user's question into one of two categories:
+
+1. "trip" - If the question is about travel planning, trips, destinations, accommodations, flights, activities, or any travel-related topic
+2. "non_trip" - If the question is a greeting, general knowledge question, or anything not related to travel
+
+Respond with ONLY the category name, nothing else."""
+
+        messages = [
+            SystemMessage(content=classifier_prompt),
+            HumanMessage(content=query)
+        ]
+
+        # Use a lightweight LLM for classification
+        from Model import llm
+        response = llm.invoke(messages)
+        raw = response.content.strip().lower()
+
+        # Validate — guard against empty string (tool-call response) or verbose output
+        if raw.startswith("trip"):
+            question_type = "trip"
+        else:
+            question_type = "non_trip"  # default: treat anything unclear as travel-related
+
+        print(f"[CLASSIFIER] Query: {query} → Type: {question_type}")
+
+        return {
+            "question_type": question_type,
+            "messages": state["messages"]
+        }
+    
+    def route_by_question_type(self, state: AgentState):
+        return state["question_type"]
   
     def Rag_node(self,state: AgentState):
         query = state["messages"][-1].content
@@ -108,9 +153,6 @@ class Agent():
         content_str = json.dumps(contents)
 
         messages = []
-        if self.system and self.flags:
-            messages.append(SystemMessage(content=self.system))
-            self.flags = False
         messages.append(SystemMessage(content=f"Context:\n{context}"))
         messages.append(HumanMessage(content=query))
         return {"messages": messages, "citation": citation_str, "content": content_str}
@@ -135,13 +177,15 @@ class Agent():
             ret['citation'] = state['citation']
         return ret
     def run(self, query: str, thread: Dict = None):
-        initial_messages = []
-        # if self.system:
-        #     initial_messages.append(SystemMessage(content=self.system))
-        initial_messages.append(HumanMessage(content=query))
-
+        initial_messages = [HumanMessage(content=query)]
         return self.graph.invoke(
-            {"messages": initial_messages, "citation": "", "content": ""},
+            {
+                "messages": initial_messages,
+                "citation": "",
+                "content": "",
+                "question_type": "",
+                "system_prompt": self.system
+            },
             config=thread
         )
 prompt =''' You are a smart and friendly travel research assistant.
@@ -149,16 +193,17 @@ prompt =''' You are a smart and friendly travel research assistant.
 You MUST follow these rules strictly:
 
 GENERAL RULES:
+- When ever use of date comes up, use the "get_current_date" tool to get today's date. Do NOT rely on any internal clock or assumptions about the date.
 - Answer using the provided context.
 - Try to get as much information as possible from the context.
+- Do not answer any knowledge questions that are not related to travel or grounded in the context or tool outputs.
 - **CRITICAL**: If the context is missing information (e.g., specific hotels, flight prices, current events) or if the user asks for real-time data, YOU MUST USE THE AVAILABLE TOOLS (serpapi_search, search_flights, etc.).
-- Do NOT use internal training knowledge not present in the context or tool outputs.
 - Do NOT infer or assume missing information.
 - You MUST always respond in valid JSON.
 - Do NOT add explanations, markdown, or extra text.
 
 INTENT HANDLING:
-1. If the user greets (e.g., "hi", "hello", "hey") or asks something unrelated to travel planning:
+1. If the user greets (e.g., "hi", "hello", "hey"):
    Respond with this JSON schema ONLY:
 
    {
@@ -176,6 +221,8 @@ INTENT HANDLING:
      "budget_estimate": number | "unknown",
      "activities": string[],
      "accommodations": string[],
+     "flights": [{"airline": string, "flight_number": string, "departure_time": string, "arrival_time": string, "duration_minutes": number, "price_inr": number}],
+     "hotels": [{"name": string, "rating": number, "price_per_night": string, "total_price": string, "amenities": string[]}],
      "transportation": string[],
      "safety": string[],
      "health": string[],
@@ -183,6 +230,10 @@ INTENT HANDLING:
      "itinerary": string[],
      "tools_used": string[]
    }
+
+   - If you called the "search_flights" tool, populate the "flights" array with the exact data returned.
+   - If you called the "search_hotels" tool, populate the "hotels" array with the exact data returned.
+   - If no tool was called for flights/hotels, return an empty array [].
 
 CONTEXT RULES:
 - Every field must be grounded in the provided context or tool results.
@@ -198,11 +249,3 @@ def get_agent():
     if _agent_instance is None:
         _agent_instance = Agent(system=prompt)
     return _agent_instance
-# def main():
-#     agent = get_agent()
-#     while True:
-#         query = input("Ask about your trip: ")
-#         result = agent.run(query,{"configurable": {"thread_id": 1}})
-#         print(json.dumps(result, indent=2))
-# if __name__ == "__main__":   
-#     main()    

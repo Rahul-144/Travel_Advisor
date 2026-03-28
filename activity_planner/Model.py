@@ -6,7 +6,7 @@ load_dotenv()
 from pydantic import BaseModel,Field
 from typing import List
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.messages import BaseMessage
+from langchain_core.messages import BaseMessage, SystemMessage
 
 from tools import *
 if "OPEN_API_KEY" not in os.environ:
@@ -36,7 +36,20 @@ llm = ChatOpenAI(
 # Test run function
 def llm_node(state: dict):
     messages: list[BaseMessage] = state["messages"]
+
+    # Prepend system prompt if present in state (avoids needing a separate node)
+    system_prompt = state.get("system_prompt", "")
+    if system_prompt:
+        messages = [SystemMessage(content=system_prompt)] + list(messages)
+
     response = llm.invoke(messages)
+
+    # Qwen3 (and other thinking models) wrap chain-of-thought in <think>...</think>.
+    # Strip it out so the downstream JSON parser always gets clean output.
+    import re
+    clean_content = re.sub(r"<think>.*?</think>", "", response.content, flags=re.DOTALL).strip()
+    response.content = clean_content
+
     result = {"messages": [response]}
     # pass citation along if present
     if "citation" in state:

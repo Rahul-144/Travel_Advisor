@@ -1,0 +1,411 @@
+[
+  {
+    "question": "hi ",
+    "retrieved_context": [
+      {
+        "context": ""
+      }
+    ],
+    "answer": {
+      "type": "non_trip",
+      "message": "Hello! How can I assist you today?"
+    }
+  },
+  {
+    "question": "how can you help me ",
+    "retrieved_context": [
+      {
+        "context": ""
+      }
+    ],
+    "answer": {
+      "type": "non_trip",
+      "message": "I can help with: ✈️ Flight information, 🏨 Hotel searches, 📅 Current date/time, 🌍 Location detection, or planning trips! What would you like to explore?"
+    }
+  },
+  {
+    "question": "plan trip to thailand",
+    "retrieved_context": [
+      {
+        "context": "the ticket office gets you a motorcycle/pick-up truck with driver to take you up to the top, and back down the hill. It's best not to sit unsecured on the bed of a pick-up, as the road is very steep in places.\\nFrom Thailand.\\nThe nearest significant Thai town is Ubon Ratchathani. The temple is at the end of Rte 221, but public transport options are limited and the easiest option is to charter a car for the day (1,000 baht and up, plus gas). The roads are surprisingly good and, depending on how hard your driver hits the gas pedal and/or how many water buffaloes decide to cross the road along the way, you can get there from Ubon in an hour and a half.\\nIf this is out of your budget, the nearest town of any size is Kantharalak, which can be reached by frequent public buses in 2 hours or so from the nearby towns of Ubon Ratchathani and Si Saket. For the last leg of the trip (34\\u00a0km), however, you will have to hitchhike or charter a songthaew/tuk-tuk/moto taxi.\\nAt the entry gate into"
+      },
+      {
+        "context": "hotels, restaurants and other businesses closing. If you can navigate the considerable bureaucracy to get to Thailand, the time to visit is now \\u2014 it's unlikely the island will ever be this quiet again.\\n\\nGET IN:\\nBy plane.\\nDirect flights.\\nVisa-on-arrival and visa-free entry are available at Samui Airport for some nationalities. See Thailand for more information. If flying out of the airport, one nice feature is a courtesy corner which provides food and drinks for all passengers in a cosy sitting area. Awaiting boarding becomes rather more comfortable with food, drinks, and Wi-Fi provided free.\\nGround transportation from the airport is readily available, but prices tend to be inflated. There's a minibus service at a fixed price per person, with booking at counter in arrival hall. The 20-minute minibus ride to Chaweng costs around 200 baht/person, but may take longer if it shuttles to multiple hotels. A faster taxi directly to your destination may cost 500 baht. Be sure to"
+      },
+      {
+        "context": "expected in most gathering places. As of October 2022 the town is no more dangerous than any other major city in Thailand.\\nTo check water level during monsoon season, visit Hatyai City Climate. For air quality, visit Air4Thai.\\n\\nGO NEXT:\\nVisa run.\\nIf you need to extend your stay in Thailand for another 15 days, you can cross the border at Dannok, near Sadao. Getting there from the airport is easy and takes about 2 hours. From the terminal, walk straight out into the parking lot to the parking lot ring road. You can wait here for a light blue songthaew to take you into town and get dropped off at The Plaza for 13 baht. The ride takes about 20-30 minutes. You can also take an airport taxi into town. At The Plaza, you can find a van waiting just across from the TOT office, which makes regular trips to Dannok. If you can't find it, just say \\\"Sadao\\\" or \\\"Dannok\\\" to people till they point you the right way. The trip is 60 baht, and vans leave once they are full. The trip should take"
+      }
+    ],
+    "answer": {
+      "type": "trip_plan",
+      "destination": "Thailand",
+      "duration_days": "unknown",
+      "budget_estimate": "unknown",
+      "activities": [
+        "Visit the temple at the end of Rte 221",
+        "Charter a car for day trips from Ubon Ratchathani",
+        "Hitchhike/songthaew/tuk-tuk/moto taxi for local transportation",
+        "Visa runs at Dannok border crossing",
+        "Explore Ubon Ratchathani and Kantharalak towns"
+      ],
+      "accommodations": [],
+      "flights": [],
+      "hotels": [],
+      "transportation": [
+        "Pick-up truck/motorcycle with driver service to steep temple access road",
+        "Charter car rental (1,000 THB+) for Rte 221 access",
+        "Public buses from Ubon Ratchathani/Si Saket to Kantharalak",
+        "Airport minibus (200 THB) or taxi (500 THB) to Chaweng",
+        "Light blue songthaew from Samui Airport parking lot to The Plaza"
+      ],
+      "safety": [
+        "Avoid sitting unsecured on pick-up truck beds due to steep roads",
+        "Road conditions may vary with water buffalo crossings",
+        "Standard city-level safety precautions apply (October 2022 update)"
+      ],
+      "health": [
+        "Check monsoon season water levels via Hatyai City Climate",
+        "Monitor air quality at Air4Thai"
+      ],
+      "culture": [
+        "Use local transport like songthaew and tuk-tuks",
+        "Navigate airport courtesy zones with food/drinks and free Wi-Fi"
+      ],
+      "itinerary": [
+        "Day 1-2: Arrive via direct flight with visa-on-arrival (if eligible)",
+        "Day 3-5: Charter car to temple route",
+        "Day 6: Explore Ubon/Kantharalak via buses and local transport",
+        "Day 7: Visit Dannok for visa extensions (if needed)"
+      ],
+      "tools_used": []
+    }
+  },
+  {
+    "question": "look for flght and hotels for mid of next month from my place",
+    "retrieved_context": [
+      {
+        "context": "from a travel agent, sometimes finding accommodation when you arrive is the best option.\\nIf you have not made reservations in advance, this should be your first priority upon arriving. The best and/or cheapest hotels have a tendency to fill up most quickly, and looking for a place to sleep as darkness falls can be an anxious \\u2013 and even dangerous \\u2013 experience.\\nIt is sometimes frustrating to be reading a guidebook and looking for the listed recommendations trying to decipher an unfamiliar map having just travelled for several hours. Walk around and inquire at the first few places you see. Courage and confidence are required for this type of thing, especially if you are not using your native languages. However, it is sometimes easier to do this rather than tracking down listings, especially for the first night.\\nLarger cities and popular tourist destinations may have \\\"tourist information offices\\\". These may be operated by the local government, a consortium of local hotels"
+      },
+      {
+        "context": "travelling to somewhere a bit more out of the way, for example, a small city or town, you may find something, but there will be accommodation options not listed on the internet. In this situation, it is better to find accommodation \\\"on the day\\\", as described below.\\nMetasearch websites aggregate results from numerous providers (Online Travel Agencies - OTA, Vacation Rental Marketplace, Booking Engines) that allow users to price compare. Metasearch is very useful in gaining an overview of the accommodations market of a given destination and to price compare the different properties.\\nSometimes, a hotel has its own web site but doesn't publish the dates for which it still has vacancies. Completing a \\\"Contact us\\\" form or sending an email should obtain every detail you need.\\nOn-line reservation is increasingly becoming the most common way of booking accommodation (sometimes the only way); unfortunately the downside is that a credit card is required to complete the reservation \\u2013"
+      },
+      {
+        "context": "key attractions; at minimum, a street address should be mentioned.\\nBeware of hidden charges, such as a non-optional \\\"resort fee\\\" or \\\"destination marketing fee\\\"; the hotel may have no intention of making any room available at the advertised price. Ask for the full cost before you book anything. If a hotel refuses to rent a room without a credit card, which happens frequently but not universally, they may be planning to bill all manner of \\\"incidental fees\\\" or hidden charges to your card. It sometimes pays to read the fine print.\\nThanks to crowd-sharing sites, travelers have many more options.\\nOn-line.\\nYou can book accommodation on-line, either at the hotel's own web site or at the website of an agency. Depending upon where you are going, this can be extremely useful. Yet if you are travelling to somewhere a bit more out of the way, for example, a small city or town, you may find something, but there will be accommodation options not listed on the internet. In this situation,"
+      }
+    ],
+    "answer": {
+      "type": "trip_plan",
+      "destination": "Thailand",
+      "duration_days": "unknown",
+      "budget_estimate": "unknown",
+      "activities": [],
+      "accommodations": [
+        {
+          "name": "Centara Watergate Pavilion Hotel Bangkok",
+          "rating": 4.5,
+          "price_per_night": "₹5,907",
+          "total_price": "₹41,349",
+          "amenities": [
+            "Breakfast ($)",
+            "Free Wi-Fi",
+            "Free parking",
+            "Air conditioning",
+            "Fitness center",
+            "Spa",
+            "Bar",
+            "Restaurant"
+          ]
+        },
+        {
+          "name": "Sukhum Sukhumvit-Onnut Guest House",
+          "rating": "N/A",
+          "price_per_night": "₹1,636",
+          "total_price": "₹11,455",
+          "amenities": [
+            "Air conditioning",
+            "Smoke-free",
+            "Free parking",
+            "Free Wi-Fi"
+          ]
+        },
+        {
+          "name": "Mandarin Oriental, Bangkok",
+          "rating": 4.7,
+          "price_per_night": "₹39,204",
+          "total_price": "₹274,428",
+          "amenities": [
+            "Breakfast ($)",
+            "Free Wi-Fi",
+            "Free parking",
+            "Outdoor pool",
+            "Hot tub",
+            "Air conditioning",
+            "Fitness center",
+            "Spa"
+          ]
+        },
+        {
+          "name": "Citadines Sukhumvit 8 Bangkok",
+          "rating": 4.205652,
+          "price_per_night": "₹5,514",
+          "total_price": "₹38,598",
+          "amenities": [
+            "Air conditioning",
+            "Airport shuttle",
+            "Kid-friendly",
+            "Crib",
+            "Elevator",
+            "Fitness center",
+            "Ironing board",
+            "Kitchen"
+          ]
+        },
+        {
+          "name": "The Salil Hotel Riverside - Bangkok",
+          "rating": 4.8,
+          "price_per_night": "₹11,101",
+          "total_price": "₹77,706",
+          "amenities": [
+            "Breakfast",
+            "Free Wi-Fi",
+            "Free parking",
+            "Outdoor pool",
+            "Air conditioning",
+            "Pet-friendly",
+            "Fitness center",
+            "Spa"
+          ]
+        }
+      ],
+      "flights": [],
+      "hotels": [
+        {
+          "name": "Centara Watergate Pavilion Hotel Bangkok",
+          "rating": 4.5,
+          "price_per_night": "₹5,907",
+          "total_price": "₹41,349",
+          "amenities": [
+            "Breakfast ($)",
+            "Free Wi-Fi",
+            "Free parking",
+            "Air conditioning",
+            "Fitness center",
+            "Spa",
+            "Bar",
+            "Restaurant"
+          ]
+        },
+        {
+          "name": "Sukhum Sukhumvit-Onnut Guest House",
+          "rating": "N/A",
+          "price_per_night": "₹1,636",
+          "total_price": "₹11,455",
+          "amenities": [
+            "Air conditioning",
+            "Smoke-free",
+            "Free parking",
+            "Free Wi-Fi"
+          ]
+        },
+        {
+          "name": "Mandarin Oriental, Bangkok",
+          "rating": 4.7,
+          "price_per_night": "₹39,204",
+          "total_price": "₹274,428",
+          "amenities": [
+            "Breakfast ($)",
+            "Free Wi-Fi",
+            "Free parking",
+            "Outdoor pool",
+            "Hot tub",
+            "Air conditioning",
+            "Fitness center",
+            "Spa"
+          ]
+        },
+        {
+          "name": "Citadines Sukhumvit 8 Bangkok",
+          "rating": 4.205652,
+          "price_per_night": "₹5,514",
+          "total_price": "₹38,598",
+          "amenities": [
+            "Air conditioning",
+            "Airport shuttle",
+            "Kid-friendly",
+            "Crib",
+            "Elevator",
+            "Fitness center",
+            "Ironing board",
+            "Kitchen"
+          ]
+        },
+        {
+          "name": "The Salil Hotel Riverside - Bangkok",
+          "rating": 4.8,
+          "price_per_night": "₹11,101",
+          "total_price": "₹77,706",
+          "amenities": [
+            "Breakfast",
+            "Free Wi-Fi",
+            "Free parking",
+            "Outdoor pool",
+            "Air conditioning",
+            "Pet-friendly",
+            "Fitness center",
+            "Spa"
+          ]
+        }
+      ],
+      "transportation": [],
+      "safety": [],
+      "health": [],
+      "culture": [],
+      "itinerary": [],
+      "tools_used": [
+        "get_current_date",
+        "get_location_by_ip",
+        "search_flights",
+        "search_hotels"
+      ]
+    }
+  },
+  {
+    "question": "plan a trip to boston",
+    "retrieved_context": [
+      {
+        "context": "If you are riding on the weekend, there is a $10 unlimited ride weekend pass that you can purchase through the mTicket app, which is often far more economical than standard tickets for weekend-only trips.\\nSubway.\\nThe Red, Orange, and Blue lines comprise Boston's traditional subway service. One thing Boston does a little differently, is that any transit running into the center is labeled as \\\"inbound\\\" and everything running away as \\\"outbound\\\". There are always signs for the last stop in your direction, in case you find that method more familiar. Train service starts around 5:30AM (6:15 AM Sundays) and ends around 12:30AM, so make your travel plans accordingly. You can bring your bike on any subway, just not during rush hours.\\nThe Red line is the busiest and one of the most helpful for visitors to Boston. The (as of 2024) slowest subway line in the system, trains north of JFK/UMass station arrive every 7-12 minutes. South of JFK/UMass, trains run every 21-23 minutes as the Red"
+      },
+      {
+        "context": "Emerald Necklace. Despite needing some maintenance, Franklin Park has miles of great hiking and biking trails. Not to mention a zoo and an 18-hole municipal golf course. White Stadium, located in the park, is used mainly for high school sports, but is being renovated to serve as the home of Boston's future team in the National Women's Soccer League.\\nThere are also a great many parks in East Boston. Being across the harbor, these parks and beaches are much less visited than the others in town. If you go, take the opportunity to mingle with locals as you watch the jets coming in for a landing at Logan airport.\\n\\nEAT:\\nWhile the first thing on most visitors minds is the excellent seafood, Boston does have other high quality options. Many travellers find sitting down to a fine Italian meal in the charming North End neighborhood an unforgettable experience, while others may prefer to explore classic dining options littered throughout the Back Bay and South End. For an evening easier on"
+      },
+      {
+        "context": "offer options.\\nWestern suburbs.\\nSimilar to the northern suburbs, this collection of towns is also feeling the squeeze of the increasing Boston metro population. These places are generally leafy and exclusive, and are sometimes rooted in an agrarian heritage instead of an industrial background.\\nSouthern suburbs.\\nThoroughly suburban, this collection of towns boasts a proud colonial past. Today, their transit connections to Boston put these locations on the radar of many recent arrivals.\\nFar northern suburbs.\\nThe main attractions in this area are its many large parks and lush green spaces.\\n\\nGET AROUND:\\nTraffic congestion on the highways and major arterials are notoriously bad in this part of Massachusetts, even on the weekends, given the limited coverage of transit and bike networks in the area. Check travel times before heading out, and a GPS is quite useful for navigating the streets.\"}"
+      }
+    ],
+    "answer": {
+      "type": "trip_plan",
+      "destination": "Boston",
+      "duration_days": "unknown",
+      "budget_estimate": "unknown",
+      "activities": [
+        "Explore the Emerald Necklace parks (Franklin Park, hiking/biking trails, golf),",
+        "Visit North End for Italian cuisine",
+        "Relax at East Boston beaches with views of Logan Airport",
+        "Tour Red Line subway sights"
+      ],
+      "accommodations": [
+        "unknown"
+      ],
+      "flights": [],
+      "hotels": [],
+      "transportation": [
+        "Use the Red/Orange/Blue subway lines (inbound/outbound system)",
+        "Purchase weekend mTicket passes for unlimited rides",
+        "Note: No bikes during rush hours on subways",
+        "Rent cars with GPS for suburban area travel"
+      ],
+      "safety": [],
+      "health": [],
+      "culture": [
+        "Experience Boston's soccer culture (White Stadium NWSL team)"
+      ],
+      "itinerary": [
+        "Day 1: Subway Red Line sightseeing + North End lunch",
+        "Day 2: Franklin Park outdoor adventure",
+        "Evening: East Boston beach and jetscape views"
+      ],
+      "tools_used": []
+    }
+  },
+  {
+    "question": "look for flght and hotels for mid of next month from my place",
+    "retrieved_context": [
+      {
+        "context": "from a travel agent, sometimes finding accommodation when you arrive is the best option.\\nIf you have not made reservations in advance, this should be your first priority upon arriving. The best and/or cheapest hotels have a tendency to fill up most quickly, and looking for a place to sleep as darkness falls can be an anxious \\u2013 and even dangerous \\u2013 experience.\\nIt is sometimes frustrating to be reading a guidebook and looking for the listed recommendations trying to decipher an unfamiliar map having just travelled for several hours. Walk around and inquire at the first few places you see. Courage and confidence are required for this type of thing, especially if you are not using your native languages. However, it is sometimes easier to do this rather than tracking down listings, especially for the first night.\\nLarger cities and popular tourist destinations may have \\\"tourist information offices\\\". These may be operated by the local government, a consortium of local hotels"
+      },
+      {
+        "context": "travelling to somewhere a bit more out of the way, for example, a small city or town, you may find something, but there will be accommodation options not listed on the internet. In this situation, it is better to find accommodation \\\"on the day\\\", as described below.\\nMetasearch websites aggregate results from numerous providers (Online Travel Agencies - OTA, Vacation Rental Marketplace, Booking Engines) that allow users to price compare. Metasearch is very useful in gaining an overview of the accommodations market of a given destination and to price compare the different properties.\\nSometimes, a hotel has its own web site but doesn't publish the dates for which it still has vacancies. Completing a \\\"Contact us\\\" form or sending an email should obtain every detail you need.\\nOn-line reservation is increasingly becoming the most common way of booking accommodation (sometimes the only way); unfortunately the downside is that a credit card is required to complete the reservation \\u2013"
+      },
+      {
+        "context": "key attractions; at minimum, a street address should be mentioned.\\nBeware of hidden charges, such as a non-optional \\\"resort fee\\\" or \\\"destination marketing fee\\\"; the hotel may have no intention of making any room available at the advertised price. Ask for the full cost before you book anything. If a hotel refuses to rent a room without a credit card, which happens frequently but not universally, they may be planning to bill all manner of \\\"incidental fees\\\" or hidden charges to your card. It sometimes pays to read the fine print.\\nThanks to crowd-sharing sites, travelers have many more options.\\nOn-line.\\nYou can book accommodation on-line, either at the hotel's own web site or at the website of an agency. Depending upon where you are going, this can be extremely useful. Yet if you are travelling to somewhere a bit more out of the way, for example, a small city or town, you may find something, but there will be accommodation options not listed on the internet. In this situation,"
+      }
+    ],
+    "answer": {
+      "type": "trip_plan",
+      "destination": "Boston",
+      "duration_days": 4,
+      "budget_estimate": "Approx. ₹2,40,000 (flight + hotel)",
+      "activities": [
+        "Explore the Emerald Necklace parks (Franklin Park, hiking/biking trails, golf)",
+        "Visit North End for Italian cuisine",
+        "Relax at East Boston beaches with views of Logan Airport",
+        "Tour Red Line subway sights"
+      ],
+      "accommodations": [
+        "Search results below include options for 4-night stay (April 15-19)"
+      ],
+      "flights": [
+        {
+          "airline": "Emirates",
+          "flight_number": "EK 533",
+          "departure_time": "2026-04-15 04:30",
+          "arrival_time": "2026-04-15 06:50",
+          "duration_minutes": 1619,
+          "price_inr": 92863
+        },
+        {
+          "airline": "Qatar Airways",
+          "flight_number": "QR 517",
+          "departure_time": "2026-04-15 11:10",
+          "arrival_time": "2026-04-15 13:25",
+          "duration_minutes": 2198,
+          "price_inr": 95908
+        }
+      ],
+      "hotels": [
+        {
+          "name": "4BR 1BH South Boston Apt Short Walk To Train",
+          "rating": 3.7,
+          "price_per_night": "₹18,590",
+          "total_price": "₹74,361",
+          "amenities": [
+            "AC",
+            "Kitchen",
+            "Free Wi-Fi"
+          ]
+        },
+        {
+          "name": "The Revolution Hotel",
+          "rating": 4.4,
+          "price_per_night": "₹19,972",
+          "total_price": "₹79,889",
+          "amenities": [
+            "Restaurant",
+            "Free Wi-Fi",
+            "Pet-friendly"
+          ]
+        }
+      ],
+      "transportation": [
+        "Use the Red/Orange/Blue subway lines (inbound/outbound system)",
+        "Purchase weekend mTicket passes for unlimited rides (April 15-16)",
+        "Rent cars with GPS for suburban area travel"
+      ],
+      "safety": [],
+      "health": [],
+      "culture": [
+        "Experience Boston's soccer culture (White Stadium NWSL team)"
+      ],
+      "itinerary": [
+        "Day 1: Subway Red Line sightseeing + North End lunch",
+        "Day 2: Franklin Park outdoor adventure",
+        "Evening: East Boston beach and jetscape views",
+        "Day 3: Cultural attractions and Back Bay shopping"
+      ],
+      "tools_used": [
+        "search_flights",
+        "search_hotels"
+      ]
+    }
+  }
+]

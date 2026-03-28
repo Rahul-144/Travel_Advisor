@@ -70,7 +70,31 @@ def render_messages(answer: dict):
             _list_section("Safety", answer.get("safety"), "🛟")
             _list_section("Health", answer.get("health"), "💊")
 
+            # --- Flights from tool call ---
+            flights = answer.get("flights", [])
+            if flights:
+                with st.expander("✈️ Available Flights", expanded=True):
+                    for f in flights:
+                        st.markdown(
+                            f"**{f.get('airline', '')} {f.get('flight_number', '')}** | "
+                            f"{f.get('departure_time', '')} → {f.get('arrival_time', '')} | "
+                            f"⏱ {f.get('duration_minutes', '')} min | "
+                            f"💰 ₹{f.get('price_inr', 'N/A')}"
+                        )
+
+            # --- Hotels from tool call ---
+            hotels = answer.get("hotels", [])
+            if hotels:
+                with st.expander("🏨 Available Hotels", expanded=True):
+                    for h in hotels:
+                        st.markdown(
+                            f"**{h.get('name', '')}** | ⭐ {h.get('rating', 'N/A')} | "
+                            f"💰 {h.get('price_per_night', 'N/A')}/night | "
+                            f"Total: {h.get('total_price', 'N/A')}"
+                        )
+
     else:
+        print(answer)
         with st.chat_message("assistant"):
             st.json(answer)
 
@@ -90,7 +114,7 @@ if prompt:
         thread = {"configurable": {"thread_id": f"{threads}"}}
         result = agent.run(prompt, thread=thread)
         answer = result["messages"][-1].content
-        # capture any retrieval citation that the agent stored
+        # capture any retrieval ation that the agent stored
         citation = result.get("citation")
         if citation:
             # try to format JSON list of citations for display
@@ -116,8 +140,8 @@ if prompt:
         
         # Extract retrieved context from result
         retrieved_context = []
-        if "contents" in result:
-            contents = result.get("contents")
+        if "content" in result:
+            contents = result.get("content")
             if isinstance(contents, str):
                 try:
                     retrieved_context = json.loads(contents)

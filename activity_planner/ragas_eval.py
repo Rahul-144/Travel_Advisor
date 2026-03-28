@@ -1,267 +1,256 @@
 """
-Ragas evaluation pipeline for Travel Advisor RAG system.
+Ragas evaluation pipeline for Travel Advisor RAG system. (ragas 0.4.x)
 Measures retrieval quality, generation quality, and overall system performance.
 """
 
 import json
 import os
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from dotenv import load_dotenv
 
+# --- ragas 0.4.x imports ---
 from ragas import evaluate
-from ragas.metrics import (
-    faithfulness,
-    answer_relevancy,
-    context_relevancy,
-    context_precision,
-    context_recall,
+from ragas.metrics.collections import (
+    Faithfulness,
+    AnswerRelevancy,
+    ContextPrecision,
+    ContextRecall,
+    ContextRelevance,
 )
-from ragas.llm import LangchainLLMWrapper
+from ragas.llms import LangchainLLMWrapper
 from ragas.embeddings import LangchainEmbeddingsWrapper
+from ragas.dataset_schema import SingleTurnSample, EvaluationDataset
+
 from langchain_openai import ChatOpenAI
 from langchain_huggingface import HuggingFaceEmbeddings
-from datasets import Dataset
 
 load_dotenv()
 
-# Initialize LLM and embeddings for Ragas
-llm = ChatOpenAI(
-    openai_api_base="https://api.groq.com/openai/v1",
-    openai_api_key=os.environ.get("OPEN_API_KEY"),
-    model_name="qwen/qwen3-32b"
-)
+# ---------------------------------------------------------------------------
+# LLM + embeddings shared by the evaluator
+# ---------------------------------------------------------------------------
+# Module-level placeholders; actual objects are created lazily inside RagasEvaluator.__init__
+_llm = None
+_embeddings = None
 
-embeddings = HuggingFaceEmbeddings(
-    model_name="sentence-transformers/all-MiniLM-L6-v2"
-)
+# Available metric CLASSES — instantiated fresh in evaluate() so llm/embeddings inject cleanly
+METRIC_REGISTRY: Dict[str, Any] = {
+    "faithfulness":     Faithfulness,
+    "answer_relevancy": AnswerRelevancy,
+    "context_precision": ContextPrecision,
+    "context_recall":   ContextRecall,
+    "context_relevance": ContextRelevance,
+}
+
+DEFAULT_METRICS = [
+    "faithfulness",
+    "answer_relevancy",
+    "context_precision",
+    "context_relevance",
+]
 
 
+# ---------------------------------------------------------------------------
+# Evaluator class
+# ---------------------------------------------------------------------------
 class RagasEvaluator:
-    """Evaluate Travel Advisor RAG system using Ragas metrics."""
-    
+    """Evaluate Travel Advisor RAG system using Ragas 0.4.x metrics."""
+
     def __init__(self):
+        llm = ChatOpenAI(
+            openai_api_base="https://api.groq.com/openai/v1",
+            openai_api_key=os.environ.get("OPEN_API_KEY"),
+            model_name="qwen/qwen3-32b",
+        )
+        embeddings = HuggingFaceEmbeddings(
+            model_name="sentence-transformers/all-MiniLM-L6-v2"
+        )
         self.ragas_llm = LangchainLLMWrapper(llm)
         self.ragas_embeddings = LangchainEmbeddingsWrapper(embeddings)
-        
-    def prepare_dataset(self, test_cases: List[Dict[str, Any]]) -> Dataset:
+
+    def prepare_dataset(self, test_cases: List[Dict[str, Any]]) -> EvaluationDataset:
         """
-        Convert test cases to Ragas dataset format.
-        
-        Expected format for each test case:
-        {
-            "question": "user query",
-            "answer": "model response",
-            "contexts": ["retrieval 1", "retrieval 2", ...],
-            "ground_truth": "expected answer (optional)"
-        }
+        Convert test cases to a ragas 0.4.x EvaluationDataset.
+
+        Each test case must have:
+            question     : str
+            answer       : str
+            contexts     : List[str]
+            ground_truth : str  (may be empty; used only by reference metrics)
         """
-        # Prepare data for Ragas
-        data = {
-            "question": [],
-            "answer": [],
-            "contexts": [],
-            "ground_truth": []
-        }
-        
+        samples = []
         for case in test_cases:
-            data["question"].append(case.get("question", ""))
-            data["answer"].append(case.get("answer", ""))
-            data["contexts"].append(case.get("contexts", []))
-            data["ground_truth"].append(case.get("ground_truth", ""))
-            
-        return Dataset.from_dict(data)
-    
+            samples.append(
+                SingleTurnSample(
+                    user_input=case.get("question", ""),
+                    response=case.get("answer", ""),
+                    retrieved_contexts=case.get("contexts", []),
+                    reference=case.get("ground_truth", ""),
+                )
+            )
+        return EvaluationDataset(samples=samples)
+
     def evaluate(
-        self, 
+        self,
         test_cases: List[Dict[str, Any]],
-        metrics: List[str] = None
+        metrics: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """
         Run Ragas evaluation on test cases.
-        
+
         Args:
-            test_cases: List of test case dictionaries
-            metrics: Which metrics to calculate (None = all available)
-        
+            test_cases: list of dicts with keys question/answer/contexts/ground_truth
+            metrics:    names from METRIC_REGISTRY (None → DEFAULT_METRICS)
+
         Returns:
-            Dictionary with evaluation results
+            dict with per-metric scores, aggregate_score, and per_question breakdown
         """
-        if metrics is None:
-            metrics = [
-                "faithfulness",
-                "answer_relevancy",
-                "context_relevancy",
-                "context_precision",
-                "context_recall"
-            ]
-        
-        dataset = self.prepare_dataset(test_cases)
-        
-        # Select metrics to evaluate
-        metrics_dict = {
-            "faithfulness": faithfulness,
-            "answer_relevancy": answer_relevancy,
-            "context_relevancy": context_relevancy,
-            "context_precision": context_precision,
-            "context_recall": context_recall,
-        }
-        
-        selected_metrics = [
-            metrics_dict[m] for m in metrics 
-            if m in metrics_dict
+        selected_names = metrics if metrics else DEFAULT_METRICS
+        selected_metric_classes = [
+            METRIC_REGISTRY[m] for m in selected_names if m in METRIC_REGISTRY
         ]
-        
-        if not selected_metrics:
-            raise ValueError(f"Invalid metrics. Available: {list(metrics_dict.keys())}")
-        
-        # Run evaluation
+
+        if not selected_metric_classes:
+            raise ValueError(
+                f"No valid metrics selected. Available: {list(METRIC_REGISTRY.keys())}"
+            )
+
+        # Instantiate each metric and inject the configured llm / embeddings
+        selected_metrics = []
+        for MetricClass in selected_metric_classes:
+            m = MetricClass()
+            if hasattr(m, "llm"):
+                m.llm = self.ragas_llm
+            if hasattr(m, "embeddings"):
+                m.embeddings = self.ragas_embeddings
+            selected_metrics.append(m)
+
+        dataset = self.prepare_dataset(test_cases)
+
         results = evaluate(
             dataset=dataset,
             metrics=selected_metrics,
             llm=self.ragas_llm,
-            embeddings=self.ragas_embeddings
+            embeddings=self.ragas_embeddings,
         )
-        
-        # Convert to dict for easier handling
-        results_dict = {
-            metric: float(results[metric]) 
-            for metric in metrics 
-            if metric in results
-        }
-        results_dict["aggregate_score"] = float(
+
+        # ragas 0.4 returns a Results object; convert to plain dict
+        scores = results.to_pandas()
+
+        metric_cols = [
+            c for c in scores.columns
+            if c not in ("user_input", "response", "retrieved_contexts", "reference")
+        ]
+
+        results_dict: Dict[str, Any] = {}
+        for col in metric_cols:
+            try:
+                results_dict[col] = float(scores[col].mean())
+            except Exception:
+                pass
+
+        results_dict["aggregate_score"] = (
             sum(results_dict.values()) / len(results_dict)
-        ) if results_dict else 0.0
-        
-        # Add detailed results per question
-        results_dict["per_question"] = self._extract_per_question_scores(
-            results, test_cases
+            if results_dict else 0.0
         )
-        
-        return results_dict
-    
-    def _extract_per_question_scores(
-        self, 
-        results: Dataset, 
-        test_cases: List[Dict]
-    ) -> List[Dict[str, Any]]:
-        """Extract per-question evaluation scores."""
+
+        # Per-question breakdown
         per_question = []
-        
         for i, case in enumerate(test_cases):
-            q_scores = {"question": case.get("question", "")}
-            
-            # Extract scores for this question from results
-            for col in results.column_names:
-                if col not in ["question", "answer", "contexts", "ground_truth"]:
-                    try:
-                        q_scores[col] = float(results[col][i])
-                    except (IndexError, TypeError):
-                        pass
-            
-            per_question.append(q_scores)
-        
-        return per_question
+            row: Dict[str, Any] = {"question": case.get("question", "")}
+            for col in metric_cols:
+                try:
+                    row[col] = float(scores[col].iloc[i])
+                except Exception:
+                    pass
+            per_question.append(row)
+
+        results_dict["per_question"] = per_question
+        return results_dict
+
+    def _extract_per_question_scores(self, results, test_cases):
+        """Kept for backward compatibility."""
+        return []
 
 
-def load_test_dataset(filepath: str = None) -> List[Dict[str, Any]]:
-    """Load test dataset from JSON file."""
-    if filepath is None:
-        filepath = "activity_planner/test_cases.json"
-    
-    if os.path.exists(filepath):
-        with open(filepath, 'r') as f:
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+def load_test_dataset(filepath: Optional[str] = None) -> List[Dict[str, Any]]:
+    """Load test cases from a JSON file (falls back to built-in defaults)."""
+    if filepath and os.path.exists(filepath):
+        with open(filepath, "r") as f:
             return json.load(f)
-    else:
-        # Return default test cases
-        return get_default_test_cases()
+    return get_default_test_cases()
 
 
 def get_default_test_cases() -> List[Dict[str, Any]]:
-    """Return default test cases for Travel Advisor."""
+    """Built-in travel test cases for smoke-testing."""
     return [
         {
             "question": "What are the best activities in Paris?",
-            "answer": "Paris offers iconic attractions like the Eiffel Tower, Louvre Museum, Notre-Dame Cathedral, and Seine river cruises. Visitors can enjoy world-class museums, art galleries, cafes, and historic landmarks.",
+            "answer": (
+                "Paris offers iconic attractions like the Eiffel Tower, Louvre Museum, "
+                "Notre-Dame Cathedral, and Seine river cruises."
+            ),
             "contexts": [
-                "Paris attractions include the Eiffel Tower, Arc de Triomphe, and Louvre Museum. The city is known for its art, culture, and cuisine.",
-                "Popular activities: visiting museums, walking along the Seine, exploring neighborhoods like Marais and Montmartre, enjoying French cuisine."
+                "Paris attractions include the Eiffel Tower, Arc de Triomphe, and Louvre Museum.",
+                "Popular activities: visiting museums, walking along the Seine, exploring Montmartre.",
             ],
-            "ground_truth": "Paris features museums, historical monuments, river cruises, and cultural experiences."
+            "ground_truth": "Paris features museums, historical monuments, river cruises, and cultural experiences.",
         },
         {
             "question": "How to get around Tokyo?",
-            "answer": "Tokyo has excellent public transportation. The subway system is extensive and efficient, with color-coded lines connecting all major areas. Buses, trains, and taxis are also available. Getting around is easy for visitors.",
+            "answer": (
+                "Tokyo has excellent public transportation. The subway system is extensive "
+                "and efficient, with IC cards like Suica working across most lines."
+            ),
             "contexts": [
-                "Tokyo's transportation: subway lines run throughout the city, trains connect to neighboring areas, buses serve local routes, and taxis are available but expensive.",
-                "The Yamanote Line is a circular train that connects major districts. IC cards like Suica can be used on most transport."
+                "Tokyo subway lines run throughout the city, trains connect neighboring areas.",
+                "The Yamanote Line is a circular train that connects major districts.",
             ],
-            "ground_truth": "Use subway, trains, buses, or taxis; IC cards are convenient for multiple trips."
+            "ground_truth": "Use subway, trains, buses, or taxis; IC cards are convenient for multiple trips.",
         },
-        {
-            "question": "What's the best time to visit Rome?",
-            "answer": "Spring (April-May) and fall (September-October) are ideal for visiting Rome. Weather is pleasant, crowds are manageable, and temperatures are comfortable for sightseeing.",
-            "contexts": [
-                "Rome weather: spring and fall offer mild temperatures (15-25°C), while summer is hot (30°C+) and crowded. Winter is cool (5-10°C) but less crowded.",
-                "Best visiting periods: April-May and September-October avoid peak summer tourism and provide good weather."
-            ],
-            "ground_truth": "Spring and fall offer the best combination of pleasant weather and fewer tourists."
-        }
     ]
 
 
 def save_evaluation_report(
-    results: Dict[str, Any], 
-    output_path: str = "evaluation_report.json"
+    results: Dict[str, Any],
+    output_path: str = "evaluation_report.json",
 ) -> str:
-    """Save evaluation results to JSON file."""
-    with open(output_path, 'w') as f:
+    """Persist evaluation results as JSON."""
+    with open(output_path, "w") as f:
         json.dump(results, f, indent=2)
     return output_path
 
 
-def run_evaluation(test_dataset: str = None) -> Dict[str, Any]:
-    """
-    Run full Ragas evaluation pipeline.
-    
-    Args:
-        test_dataset: Path to test dataset JSON file (optional)
-    
-    Returns:
-        Complete evaluation results
-    """
+def run_evaluation(test_dataset: Optional[str] = None) -> Dict[str, Any]:
+    """Convenience wrapper: load → evaluate → print → return."""
     print("🚀 Starting Ragas Evaluation Pipeline...")
-    
-    # Load test cases
+
     test_cases = load_test_dataset(test_dataset)
     print(f"✓ Loaded {len(test_cases)} test cases")
-    
-    # Initialize evaluator
+
     evaluator = RagasEvaluator()
     print("✓ Initialized Ragas evaluator")
-    
-    # Run evaluation
+
     print("📊 Running evaluation metrics...")
     results = evaluator.evaluate(test_cases)
-    
-    # Report results
-    print("\n" + "="*50)
+
+    print("\n" + "=" * 50)
     print("📈 EVALUATION RESULTS")
-    print("="*50)
+    print("=" * 50)
     print(f"Aggregate Score: {results['aggregate_score']:.4f}")
-    print(f"\nMetric Scores:")
+    print("\nMetric Scores:")
     for metric, score in results.items():
-        if metric not in ["aggregate_score", "per_question"]:
+        if metric not in ("aggregate_score", "per_question"):
             print(f"  {metric}: {score:.4f}")
-    
+
     print("\n✓ Evaluation complete!")
-    
     return results
 
 
 if __name__ == "__main__":
-    # Run evaluation with default test cases
     results = run_evaluation()
-    
-    # Save results
     output_file = save_evaluation_report(results)
     print(f"\n✓ Results saved to {output_file}")
